@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog][keep-changelog]
 and this project adheres to [Semantic Versioning][semver].
 
-## [0.0.1] - 2021-01-01
+## [0.0.1] - 2023-04-17
 
 ### Added
 

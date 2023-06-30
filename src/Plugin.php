@@ -1,16 +1,30 @@
 <?php
 /**
- * Copyright (c) 2021 Geniem Oy.
+ * Copyright (c) 2023 Geniem Oy.
  */
 
-namespace Tms\Plugin\Boilerplate;
+namespace Tms\Plugin\PlaceOfBusinessSync;
 
 /**
  * Class Plugin
  *
- * @package Tms\Plugin\Boilerplate
+ * @package Tms\Plugin\PlaceOfBusinessSync
  */
 final class Plugin {
+
+    /**
+     * Default language.
+     *
+     * @var string
+     */
+    const DEFAULT_LANGUAGE = 'fi';
+
+    /**
+     * Fallback language.
+     *
+     * @var string
+     */
+    const FALLBACK_LANGUAGE = 'en';
 
     /**
      * Holds the singleton.
@@ -25,18 +39,6 @@ final class Plugin {
      * @var string
      */
     protected $version = '';
-    /**
-     * Path to assets distribution versions.
-     *
-     * @var string
-     */
-    protected string $dist_path = '';
-    /**
-     * Uri to assets distribution versions.
-     *
-     * @var string
-     */
-    protected string $dist_uri = '';
 
     /**
      * Get the instance.
@@ -120,68 +122,118 @@ final class Plugin {
         $this->version     = $version;
         $this->plugin_path = $plugin_path;
         $this->plugin_uri  = plugin_dir_url( $plugin_path ) . basename( $this->plugin_path );
-        $this->dist_path   = $this->plugin_path . '/assets/dist/';
-        $this->dist_uri    = $this->plugin_uri . '/assets/dist/';
     }
 
     /**
      * Add plugin hooks and filters.
      */
-    protected function hooks() {
-        add_action( 'wp_enqueue_scripts', [ $this, 'enqueue_public_scripts' ] );
-        add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_admin_scripts' ] );
+    protected function hooks() : void {
+        ( new PlaceOfBusiness() );
+
+        \add_filter(
+            'pll_get_post_types',
+            \Closure::fromCallable( [ $this, 'add_cpts_to_polylang' ] ),
+            10,
+            2
+        );
+
+        $this->cli_hooks();
     }
 
     /**
-     * Enqueue public side scripts if they exist.
-     */
-    public function enqueue_public_scripts() {
-        if ( file_exists( $this->dist_path . 'public.js' ) ) {
-            wp_enqueue_script(
-                'boilerplate-public-js',
-                $this->dist_uri . 'public.js',
-                [ 'jquery' ],
-                $this->mod_time( 'public.js' ),
-                true
-            );
-        }
-    }
-
-    /**
-     * Enqueue admin side scripts if they exist.
-     */
-    public function enqueue_admin_scripts() {
-        if ( file_exists( $this->dist_path . 'admin.css' ) ) {
-            wp_enqueue_style(
-                'boilerplate-admin-css',
-                $this->dist_uri . 'admin.css',
-                [],
-                $this->mod_time( 'admin.css' ),
-                'all'
-            );
-        }
-
-        if ( file_exists( $this->dist_path . 'admin.js' ) ) {
-            wp_enqueue_script(
-                'boilerplate-admin-js',
-                $this->dist_uri . 'admin.js',
-                [ 'jquery' ],
-                $this->mod_time( 'admin.js' ),
-                true
-            );
-        }
-    }
-
-    /**
-     * Get cache busting modification time or plugin version.
+     * This adds the CPTs that are not public to Polylang translation.
      *
-     * @param string $file File inside assets/dist/ folder.
+     * @param array   $post_types  The post type array.
+     * @param boolean $is_settings A not used boolean flag to see if we're in settings.
      *
-     * @return int|string
+     * @return array The modified post_types -array.
      */
-    private function mod_time( $file = '' ) {
-        return file_exists( $this->dist_path . $file )
-            ? (int) filemtime( $this->dist_path . $file )
-            : $this->version;
+    protected function add_cpts_to_polylang( $post_types, $is_settings ) { // phpcs:ignore
+        $post_types[ PlaceOfBusiness::SLUG ]     = PlaceOfBusiness::SLUG;
+
+        return $post_types;
+    }
+
+    /**
+     * Define CLI hooks.
+     *
+     * @return void
+     */
+    protected function cli_hooks() : void {
+        if ( ! defined( 'WP_CLI' ) || ! \WP_CLI ) {
+            return;
+        }
+
+        \WP_CLI::add_command(
+            'sync-place-of-business',
+            [$this, 'cli_callback'],
+            [
+                'shortdesc' => 'Import place of business from Tampere.fi Drupal API to WordPress.',
+                'synopsis'  => [
+                    [
+                        'type'        => 'assoc',
+                        'name'        => 'from',
+                        'description' => 'The language to import from.',
+                        'optional'    => true,
+                        'default'     => 'fi',
+                    ],
+                    [
+                        'type'        => 'assoc',
+                        'name'        => 'to',
+                        'description' => 'The language to import to.',
+                        'optional'    => true,
+                        'default'     => 'fi',
+                    ],
+                ],
+            ]
+        );
+    }
+
+    /**
+     * WP CLI callback for importing contacts.
+     *
+     * @param $args
+     * @param $assoc_args
+     *
+     * @return void
+     */
+    public function cli_callback( $args, $assoc_args ): void {
+        $this->do_import( $assoc_args['from'], $assoc_args['to'] );
+    }
+
+    /**
+     * Import contacts for each language.
+     *
+     * @return void
+     */
+    public function import() : void {
+        if ( ! function_exists( 'pll_languages_list' ) ) {
+            $this->do_import( self::DEFAULT_LANGUAGE, self::DEFAULT_LANGUAGE);
+
+            return;
+        }
+
+        $languages = pll_languages_list();
+
+        foreach ( $languages as $from_lang ) {
+            // All languages default to en, except fi.
+            $to_lang = $from_lang === self::DEFAULT_LANGUAGE
+                ? self::DEFAULT_LANGUAGE
+                : self::FALLBACK_LANGUAGE;
+
+            $this->do_import( $from_lang, $to_lang );
+        }
+    }
+
+    /**
+     * Import contacts from Tampere.fi Drupal API to WordPress.
+     *
+     * @param string $from_lang The API language to sync from.
+     * @param string $to_lang   The WordPress language to sync to.
+     *
+     * @return void
+     */
+    public function do_import( string $from_lang = 'fi', string $to_lang = 'fi'  ) : void {
+        ( new Sync() )->run( $from_lang, $to_lang );
     }
 }

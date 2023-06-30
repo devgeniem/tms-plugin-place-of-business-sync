@@ -1,19 +1,19 @@
 <?php
 /**
- * Plugin Name: {{plugin-name}}
- * Plugin URI: https://github.com/devgeniem/tms-plugin-boilerplate
- * Description: {{plugin-description}}
+ * Plugin Name: tms-plugin-place-of-business-sync
+ * Plugin URI: https://github.com/devgeniem/tms-plugin-place-of-business-sync
+ * Description: Sync Place Of Business CPT't from Tampere.fi Drupal site.
  * Version: 1.0.0
- * Requires PHP: 7.4
+ * Requires PHP: 8.1
  * Author: Geniem Oy
  * Author URI: https://geniem.com
  * License: GPL v3 or later
  * License URI: https://www.gnu.org/licenses/gpl-3.0.html
- * Text Domain: {{text-domain}}
+ * Text Domain: tms-plugin-place-of-business-sync
  * Domain Path: /languages
  */
 
-use Tms\Plugin\Boilerplate\Plugin;
+use Tms\Plugin\PlaceOfBusinessSync\Plugin;
 
 // Check if Composer has been initialized in this directory.
 // Otherwise we just use global composer autoloading.
@@ -30,13 +30,13 @@ $plugin_path = __DIR__;
 // Initialize the plugin.
 Plugin::init( $plugin_version, $plugin_path );
 
-if ( ! function_exists( 'boilerplate' ) ) {
+if ( ! function_exists( 'TmsPlaceOfBusinessSync' ) ) {
     /**
-     * Get the {{plugin-name}} plugin instance.
+     * Get the plugin instance.
      *
      * @return Plugin
      */
-    function boilerplate() : Plugin {
+    function TmsPlaceOfBusinessSync() : Plugin {
         return Plugin::plugin();
     }
 }
