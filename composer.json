@@ -1,5 +1,5 @@
 {
-    "name": "tampere/tms-plugin-place-of-business-sync",
+    "name": "devgeniem/tms-plugin-place-of-business-sync",
     "type": "wordpress-plugin",
     "license": "GPL-3.0-or-later",
     "description": "Sync place of business from Tampere.fi Drupal site",

@@ -26,16 +26,18 @@ class Sync {
      * @return array|null
      */
     public function fetch_entities( string $lang = 'fi' ): ?array {
-        $base_url = 'https://web-dev.tampere.fi/sites/default/files/api_json';
+        $base_url = env( 'TAMPERE_API_URL' ) . 'sites/default/files/api_json';
         $endpoint = sprintf( '%s/place_of_business_%s.json', $base_url, $lang );
 
         echo "Fetching entities from $endpoint \n";
+
+        $basic_auth_key = env( 'TAMPERE_API_AUTH' );
 
         $response = wp_remote_get(
             $endpoint,
             [
                 'headers' => [
-                    'Authorization' => 'Basic ' . base64_encode( 'tampere:project2020' ),
+                    'Authorization' => 'Basic ' . base64_encode( $basic_auth_key ),
                 ],
             ]
         );
