@@ -48,7 +48,7 @@ class PlaceOfBusiness {
      *
      * @var string
      */
-    private $icon = 'dashicons-site';
+    private $icon = 'dashicons-admin-site';
 
     /**
      * Constructor
