@@ -1,6 +1,6 @@
 <?php
 /**
- * Plugin Name: tms-plugin-place-of-business-sync
+ * Plugin Name: TMS Place of Business Sync
  * Plugin URI: https://github.com/devgeniem/tms-plugin-place-of-business-sync
  * Description: Sync Place Of Business CPT't from Tampere.fi Drupal site.
  * Version: 1.0.0
