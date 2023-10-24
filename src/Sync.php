@@ -75,16 +75,16 @@ class Sync {
         foreach ( $api_entities as $api_entity ) {
             $normalized_api_entity = $this->normalize_api_entity( $api_entity );
 
-            if ( ! isset( $wp_entities[ $api_entity->id ] ) ) {
+            if ( ! isset( $wp_entities[ $api_entity->id .'-'. $from_lang ] ) ) {
                 $to_be_created[] = $normalized_api_entity;
             } else {
                 $to_be_updated[] = [
                     'api_entity' => $normalized_api_entity,
-                    'wp_id'      => $wp_entities[ $api_entity->id ],
+                    'wp_id'      => $wp_entities[ $api_entity->id .'-'. $from_lang ],
                 ];
             }
 
-            $api_entity_id_list[] = $api_entity->id;
+            $api_entity_id_list[] = $api_entity->id .'-'. $from_lang;
         }
 
         $this->create_entities( $to_lang, $to_be_created );
@@ -130,6 +130,10 @@ class Sync {
                 'post_status' => 'publish',
                 'lang'        => $to_lang,
             ] );
+
+            if ( function_exists( 'pll_set_post_language' ) ) {
+                pll_set_post_language( $id, $to_lang );
+            }
 
             if ( is_wp_error( $id ) || $id === 0 ) {
                 error_log( 'Insert failed for: ' . $item['meta'][ self::ENTITY_API_ID ] );
