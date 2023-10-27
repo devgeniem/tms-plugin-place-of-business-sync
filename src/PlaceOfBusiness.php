@@ -137,12 +137,12 @@ class PlaceOfBusiness {
             'show_in_rest'        => true,
         ];
 
-        $args = apply_filters(
+        $args = \apply_filters(
             'tms/post_type/' . static::SLUG . '/args',
             $args
         );
 
-         register_post_type( static::SLUG, $args );
+        \register_post_type( static::SLUG, $args );
     }
 
     /**
@@ -169,7 +169,7 @@ class PlaceOfBusiness {
                 );
 
             $strings = [
-                'title'       => [
+                'title' => [
                     'label'        => 'Otsikko',
                     'instructions' => '',
                 ],
@@ -181,35 +181,35 @@ class PlaceOfBusiness {
                     'label'        => 'Kuvaus',
                     'instructions' => '',
                 ],
-                'phone_repeater'        => [
+                'phone_repeater' => [
                     'label'        => 'Puhelinnumerot',
                     'instructions' => '',
                 ],
-                'phone_number'        => [
+                'phone_number' => [
                     'label'        => 'Puhelinnumero',
                     'instructions' => '',
                 ],
-                'phone_text'        => [
+                'phone_text' => [
                     'label'        => 'Puhelinnumeron selite',
                     'instructions' => '',
                 ],
-                'email'        => [
+                'email' => [
                     'label'        => 'Sähköposti',
                     'instructions' => '',
                 ],
-                'additional_info'        => [
+                'additional_info' => [
                     'label'        => 'Lisätiedot',
                     'instructions' => '',
                 ],
-                'mail_address_street'        => [
+                'mail_address_street' => [
                     'label'        => 'Katuosoite',
                     'instructions' => '',
                 ],
-                'mail_address_zip_code'        => [
+                'mail_address_zip_code' => [
                     'label'        => 'Postinumero',
                     'instructions' => '',
                 ],
-                'mail_address_city'        => [
+                'mail_address_city' => [
                     'label'        => 'Postitoimipaikka',
                     'instructions' => '',
                 ],
@@ -218,17 +218,17 @@ class PlaceOfBusiness {
             $key = $field_group->get_key();
 
             $title_field = ( new Field\Text( $strings['title']['label'] ) )
-                ->set_key( "${key}_title" )
+                ->set_key( "{$key}_title" )
                 ->set_name( 'title' )
                 ->set_instructions( $strings['title']['instructions'] );
 
             $summary_field = ( new Field\Textarea( $strings['summary']['label'] ) )
-                ->set_key( "${key}_summary" )
+                ->set_key( "{$key}_summary" )
                 ->set_name( 'summary' )
                 ->set_instructions( $strings['summary']['instructions'] );
 
             $description_field = ( new Field\ExtendedWysiwyg( $strings['description']['label'] ) )
-                ->set_key( "${key}_description" )
+                ->set_key( "{$key}_description" )
                 ->set_name( 'description' )
                 ->set_tabs( 'visual' )
                 ->set_toolbar(
@@ -244,17 +244,17 @@ class PlaceOfBusiness {
                 ->set_instructions( $strings['description']['instructions'] );
 
             $phone_repeater_field = ( new Field\Repeater( $strings['phone_repeater']['label'] ) )
-                ->set_key( "${key}_phone_repeater" )
+                ->set_key( "{$key}_phone_repeater" )
                 ->set_name( 'phone_repeater' )
                 ->set_instructions( $strings['phone_repeater']['instructions'] );
 
             $phone_number_field = ( new Field\Text( $strings['phone_number']['label'] ) )
-                ->set_key( "${key}_phone_number" )
+                ->set_key( "{$key}_phone_number" )
                 ->set_name( 'phone_number' )
                 ->set_instructions( $strings['phone_number']['instructions'] );
 
             $phone_text_field = ( new Field\Text( $strings['phone_text']['label'] ) )
-                ->set_key( "${key}_phone_text" )
+                ->set_key( "{$key}_phone_text" )
                 ->set_name( 'phone_text' )
                 ->set_instructions( $strings['phone_text']['instructions'] );
 
@@ -264,7 +264,7 @@ class PlaceOfBusiness {
             ]);
 
             $additional_info_field = ( new Field\ExtendedWysiwyg( $strings['additional_info']['label'] ) )
-                ->set_key( "${key}_additional_info" )
+                ->set_key( "{$key}_additional_info" )
                 ->set_name( 'additional_info' )
                 ->set_tabs( 'visual' )
                 ->set_toolbar(
@@ -280,24 +280,24 @@ class PlaceOfBusiness {
                 ->set_instructions( $strings['additional_info']['instructions'] );
 
             $email_field = ( new Field\Text( $strings['email']['label'] ) )
-                ->set_key( "${key}_email" )
+                ->set_key( "{$key}_email" )
                 ->set_name( 'email' )
                 ->set_instructions( $strings['email']['instructions'] );
 
             $street_field = ( new Field\Text( $strings['mail_address_street']['label'] ) )
-                ->set_key( "${key}_mail_address_street" )
+                ->set_key( "{$key}_mail_address_street" )
                 ->set_name( 'mail_address_street' )
                 ->set_wrapper_width( 50 )
                 ->set_instructions( $strings['mail_address_street']['instructions'] );
 
             $zip_code_field = ( new Field\Text( $strings['mail_address_zip_code']['label'] ) )
-                ->set_key( "${key}_mail_address_zip_code" )
+                ->set_key( "{$key}_mail_address_zip_code" )
                 ->set_name( 'mail_address_zip_code' )
                 ->set_wrapper_width( 50 )
                 ->set_instructions( $strings['mail_address_zip_code']['instructions'] );
 
             $city_field = ( new Field\Text( $strings['mail_address_city']['label'] ) )
-                ->set_key( "${key}_mail_address_city" )
+                ->set_key( "{$key}_mail_address_city" )
                 ->set_name( 'mail_address_city' )
                 ->set_wrapper_width( 50 )
                 ->set_instructions( $strings['mail_address_city']['instructions'] );
@@ -319,7 +319,7 @@ class PlaceOfBusiness {
                 )
             );
 
-            $field_group = apply_filters(
+            $field_group = \apply_filters(
                 'tms/acf/group/' . $field_group->get_key(),
                 $field_group
             );

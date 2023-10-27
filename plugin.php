@@ -30,13 +30,13 @@ $plugin_path = __DIR__;
 // Initialize the plugin.
 Plugin::init( $plugin_version, $plugin_path );
 
-if ( ! function_exists( 'TmsPlaceOfBusinessSync' ) ) {
+if ( ! function_exists( 'tms_place_of_business_sync' ) ) {
     /**
      * Get the plugin instance.
      *
      * @return Plugin
      */
-    function TmsPlaceOfBusinessSync() : Plugin {
+    function tms_place_of_business_sync() : Plugin {
         return Plugin::plugin();
     }
 }
