@@ -28,6 +28,11 @@ class Sync {
         $base_url = env( 'TAMPERE_API_URL' ) . 'sites/default/files/api_json';
         $endpoint = sprintf( '%s/place_of_business_%s.json', $base_url, $lang );
 
+        if ( ! env( 'TAMPERE_API_AUTH' ) ) {
+            \WP_CLI::log( 'Authentication key not found' );
+            return null;
+        }
+
         \WP_CLI::log( sprintf( 'Fetching entities from %s', $endpoint ) );
 
         $basic_auth_key = env( 'TAMPERE_API_AUTH' );
@@ -36,7 +41,7 @@ class Sync {
             $endpoint,
             [
                 'headers' => [
-                    'Authorization' => 'Basic ' . base64_encode( $basic_auth_key ),
+                    'Authorization' => 'Basic ' . base64_encode( $basic_auth_key ), // phpcs:ignore
                 ],
             ]
         );
@@ -136,7 +141,7 @@ class Sync {
             }
 
             if ( is_wp_error( $id ) || $id === 0 ) {
-                error_log( 'Insert failed for: ' . $item['meta'][ self::ENTITY_API_ID ] );
+                error_log( 'Insert failed for: ' . $item['meta'][ self::ENTITY_API_ID ] ); // phpcs:ignore
 
                 continue;
             }
@@ -166,7 +171,7 @@ class Sync {
             ] );
 
             if ( is_wp_error( $id ) || $id === 0 ) {
-                error_log( 'Update failed for: ' . $item['api_entity'][ self::ENTITY_API_ID ] );
+                error_log( 'Update failed for: ' . $item['api_entity'][ self::ENTITY_API_ID ] ); // phpcs:ignore
 
                 continue;
             }
@@ -285,6 +290,7 @@ class Sync {
             'post_type'      => PlaceOfBusiness::SLUG,
             'posts_per_page' => - 1,
             'lang'           => $from_lang,
+            'fields'         => 'ids',
         ] );
 
         if ( ! $the_query->have_posts() ) {
@@ -293,11 +299,11 @@ class Sync {
 
         $entities = [];
 
-        foreach ( $the_query->posts as $entity ) {
-            $api_id = get_field( static::ENTITY_API_ID, $entity->ID );
+        foreach ( $the_query->posts as $entity_id ) {
+            $api_id = get_field( static::ENTITY_API_ID, $entity_id );
 
             if ( ! empty( $api_id ) ) {
-                $entities[ $api_id ] = $entity->ID;
+                $entities[ $api_id ] = $entity_id;
             }
         }
 

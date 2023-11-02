@@ -197,7 +197,7 @@ final class Plugin {
      *
      * @return void
      */
-    public function cli_callback( $args, $assoc_args ): void {
+    public function cli_callback( $args, $assoc_args ): void { // phpcs:ignore
         $this->do_import( $assoc_args['from'], $assoc_args['to'] );
     }
 
