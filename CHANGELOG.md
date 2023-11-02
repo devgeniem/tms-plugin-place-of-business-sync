@@ -4,9 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog][keep-changelog]
 and this project adheres to [Semantic Versioning][semver].
 
-## [0.0.2] - 2023-10-26
+## [1.0.0] - 2023-11-02
 
-- TMS-950: Set polylang language for posts
+- TMS-950:
+    - Set polylang language for posts
+    - Simplify code
 
 ## [0.0.1] - 2023-04-17
 
