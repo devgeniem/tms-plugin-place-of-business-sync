@@ -121,7 +121,7 @@ final class Plugin {
     protected function __construct( $version = '', $plugin_path = '' ) {
         $this->version     = $version;
         $this->plugin_path = $plugin_path;
-        $this->plugin_uri  = plugin_dir_url( $plugin_path ) . basename( $this->plugin_path );
+        $this->plugin_uri  = \plugin_dir_url( $plugin_path ) . basename( $this->plugin_path );
     }
 
     /**
@@ -149,7 +149,7 @@ final class Plugin {
      * @return array The modified post_types -array.
      */
     protected function add_cpts_to_polylang( $post_types, $is_settings ) { // phpcs:ignore
-        $post_types[ PlaceOfBusiness::SLUG ]     = PlaceOfBusiness::SLUG;
+        $post_types[ PlaceOfBusiness::SLUG ] = PlaceOfBusiness::SLUG;
 
         return $post_types;
     }
@@ -166,7 +166,7 @@ final class Plugin {
 
         \WP_CLI::add_command(
             'sync-place-of-business',
-            [$this, 'cli_callback'],
+            [ $this, 'cli_callback' ],
             [
                 'shortdesc' => 'Import place of business from Tampere.fi Drupal API to WordPress.',
                 'synopsis'  => [
@@ -192,12 +192,12 @@ final class Plugin {
     /**
      * WP CLI callback for importing contacts.
      *
-     * @param $args
-     * @param $assoc_args
+     * @param array $args       Arguments.
+     * @param array $assoc_args Associative arguments.
      *
      * @return void
      */
-    public function cli_callback( $args, $assoc_args ): void {
+    public function cli_callback( $args, $assoc_args ): void { // phpcs:ignore
         $this->do_import( $assoc_args['from'], $assoc_args['to'] );
     }
 
@@ -208,12 +208,12 @@ final class Plugin {
      */
     public function import() : void {
         if ( ! function_exists( 'pll_languages_list' ) ) {
-            $this->do_import( self::DEFAULT_LANGUAGE, self::DEFAULT_LANGUAGE);
+            $this->do_import( self::DEFAULT_LANGUAGE, self::DEFAULT_LANGUAGE );
 
             return;
         }
 
-        $languages = pll_languages_list();
+        $languages = \pll_languages_list();
 
         foreach ( $languages as $from_lang ) {
             // All languages default to en, except fi.
@@ -233,7 +233,7 @@ final class Plugin {
      *
      * @return void
      */
-    public function do_import( string $from_lang = 'fi', string $to_lang = 'fi'  ) : void {
+    public function do_import( string $from_lang = 'fi', string $to_lang = 'fi' ) : void {
         ( new Sync() )->run( $from_lang, $to_lang );
     }
 }

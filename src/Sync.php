@@ -9,7 +9,6 @@ namespace Tms\Plugin\PlaceOfBusinessSync;
  * Class Sync
  *
  * @package Tms\Plugin\PlaceOfBusinessSync
- *
  */
 class Sync {
 
@@ -29,7 +28,12 @@ class Sync {
         $base_url = env( 'TAMPERE_API_URL' ) . 'sites/default/files/api_json';
         $endpoint = sprintf( '%s/place_of_business_%s.json', $base_url, $lang );
 
-        echo "Fetching entities from $endpoint \n";
+        if ( ! env( 'TAMPERE_API_AUTH' ) ) {
+            \WP_CLI::log( 'Authentication key not found' );
+            return null;
+        }
+
+        \WP_CLI::log( sprintf( 'Fetching entities from %s', $endpoint ) );
 
         $basic_auth_key = env( 'TAMPERE_API_AUTH' );
 
@@ -37,7 +41,7 @@ class Sync {
             $endpoint,
             [
                 'headers' => [
-                    'Authorization' => 'Basic ' . base64_encode( $basic_auth_key ),
+                    'Authorization' => 'Basic ' . base64_encode( $basic_auth_key ), // phpcs:ignore
                 ],
             ]
         );
@@ -56,12 +60,12 @@ class Sync {
      * @return void
      */
     public function run( string $from_lang = 'fi', string $to_lang = 'fi' ): void {
-        echo "Syncing from $from_lang to $to_lang \n";
+        \WP_CLI::log( sprintf( 'Syncing from %s to %s', $from_lang, $to_lang ) );
         $api_entities = $this->fetch_entities( $from_lang );
 
         if ( empty( $api_entities ) ) {
             // Empty API response is to be treated as API error
-            echo "Nothing to sync. Exiting...";
+            \WP_CLI::log( 'Nothing to sync. Exiting...' );
 
             return;
         }
@@ -75,16 +79,17 @@ class Sync {
         foreach ( $api_entities as $api_entity ) {
             $normalized_api_entity = $this->normalize_api_entity( $api_entity );
 
-            if ( ! isset( $wp_entities[ $api_entity->id ] ) ) {
+            if ( ! isset( $wp_entities[ $api_entity->id . '-' . $from_lang ] ) ) {
                 $to_be_created[] = $normalized_api_entity;
-            } else {
+            }
+            else {
                 $to_be_updated[] = [
                     'api_entity' => $normalized_api_entity,
-                    'wp_id'      => $wp_entities[ $api_entity->id ],
+                    'wp_id'      => $wp_entities[ $api_entity->id . '-' . $from_lang ],
                 ];
             }
 
-            $api_entity_id_list[] = $api_entity->id;
+            $api_entity_id_list[] = $api_entity->id . '-' . $from_lang;
         }
 
         $this->create_entities( $to_lang, $to_be_created );
@@ -116,7 +121,7 @@ class Sync {
             return;
         }
 
-        printf( "Creating %s entities for lang %s \n", count( $to_be_created ), $to_lang );
+        \WP_CLI::log( sprintf( 'Creating %s entities for lang %s', count( $to_be_created ), $to_lang ) );
 
         foreach ( $to_be_created as $item ) {
             if ( empty( $item['post_title'] ) ) {
@@ -124,15 +129,19 @@ class Sync {
             }
 
             $id = wp_insert_post( [
-                'post_title'  => $item['post_title'],
-                'post_type'   => PlaceOfBusiness::SLUG,
+                'post_title'   => $item['post_title'],
+                'post_type'    => PlaceOfBusiness::SLUG,
                 'post_content' => '',
-                'post_status' => 'publish',
-                'lang'        => $to_lang,
+                'post_status'  => 'publish',
+                'lang'         => $to_lang,
             ] );
 
+            if ( function_exists( 'pll_set_post_language' ) ) {
+                pll_set_post_language( $id, $to_lang );
+            }
+
             if ( is_wp_error( $id ) || $id === 0 ) {
-                error_log( 'Insert failed for: ' . $item['meta'][ self::ENTITY_API_ID ] );
+                error_log( 'Insert failed for: ' . $item['meta'][ self::ENTITY_API_ID ] ); // phpcs:ignore
 
                 continue;
             }
@@ -162,7 +171,7 @@ class Sync {
             ] );
 
             if ( is_wp_error( $id ) || $id === 0 ) {
-                error_log( 'Update failed for: ' . $item['api_entity'][ self::ENTITY_API_ID ] );
+                error_log( 'Update failed for: ' . $item['api_entity'][ self::ENTITY_API_ID ] ); // phpcs:ignore
 
                 continue;
             }
@@ -272,6 +281,8 @@ class Sync {
      * Fetch WP entities
      * Return array keys are API ID's
      *
+     * @param string $from_lang The language used for syncing.
+     *
      * @return array
      */
     protected function fetch_wp_entities( string $from_lang ): array {
@@ -279,6 +290,7 @@ class Sync {
             'post_type'      => PlaceOfBusiness::SLUG,
             'posts_per_page' => - 1,
             'lang'           => $from_lang,
+            'fields'         => 'ids',
         ] );
 
         if ( ! $the_query->have_posts() ) {
@@ -287,11 +299,11 @@ class Sync {
 
         $entities = [];
 
-        foreach ( $the_query->posts as $entity ) {
-            $api_id = get_field( static::ENTITY_API_ID, $entity->ID );
+        foreach ( $the_query->posts as $entity_id ) {
+            $api_id = get_field( static::ENTITY_API_ID, $entity_id );
 
             if ( ! empty( $api_id ) ) {
-                $entities[ $api_id ] = $entity->ID;
+                $entities[ $api_id ] = $entity_id;
             }
         }
 
